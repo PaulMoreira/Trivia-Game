@@ -1,68 +1,86 @@
-$(document).ready(function() {
-  // retrieve questions and answers from JSON file
-  $.getJSON("questions.json", function(data) {
-    var questions = data.questions;
-    var questionIndex = 0;
-    var score = 0;
+$(document).ready(function () {
 
-    // display initial question and answers
-    displayQuestionAndAnswers(questionIndex, questions);
-
-    // handle user input and calculate score
-    $(".answer-btn").on("click", function() {
-      var selectedAnswer = $(this).text();
-      var correctAnswer = questions[questionIndex].answer;
-      if (selectedAnswer === correctAnswer) {
-        score++;
-        $("#score").text(score);
-      }
-      questionIndex++;
-      if (questionIndex < questions.length) {
-        displayQuestionAndAnswers(questionIndex, questions);
-      } else {
-        endGame();
-      }
-    });
-
-    // set up timer
-    var timeLeft = 30;
-    var timerInterval = setInterval(function() {
-      $("#timer").text(timeLeft);
-      timeLeft--;
-      if (timeLeft < 0) {
-        clearInterval(timerInterval);
-        endGame();
-      }
-    }, 1000);
-
-    // function to display question and answers
-    function displayQuestionAndAnswers(index, questions) {
-      var question = questions[index].question;
-      var answers = questions[index].answers;
-      $("#question").text(question);
-      $("#answer-1").text(answers[0]);
-      $("#answer-2").text(answers[1]);
-      $("#answer-3").text(answers[2]);
-      $("#answer-4").text(answers[3]);
-    }
-
-    // function to handle end of game
-    function endGame() {
-      clearInterval(timerInterval);
-      $(".answer-btn").off("click");
-      $("#question").text("Game Over!");
-      $("#answer-1").text("Final Score: " + score);
-      $("#answer-2").text("");
-      $("#answer-3").text("");
-      $("#answer-4").text("");
-    }
-  })
-  // handle error if JSON file cannot be retrieved
-  .fail(function() {
-    $("#question").text("Oops! Something went wrong.");
-    $("#answer-1").text("Please try again later.");
-    $("#answer-2").text("");
-    $("#answer-3").text("");
-    $("#answer-4").text("");
+	// load questions from JSON file
+	$.getJSON("questions.json", function (data) {
+	  var questions = data.questions;
+	  var numQuestions = questions.length;
+	  var currentQuestion = 0;
+	  var score = 0;
+	  var time = 10;
+  
+	  // display current question and choices
+	  function displayQuestion() {
+		$("#question").text(questions[currentQuestion].question);
+		$("#choice-1").text(questions[currentQuestion].choices[0]);
+		$("#choice-2").text(questions[currentQuestion].choices[1]);
+		$("#choice-3").text(questions[currentQuestion].choices[2]);
+		$("#choice-4").text(questions[currentQuestion].choices[3]);
+	  }
+  
+	  // display initial question and choices
+	  displayQuestion();
+  
+	  // start timer
+	  var timer = setInterval(function () {
+		time--;
+		$("#time").text(time);
+  
+		if (time == 0) {
+		  clearInterval(timer);
+		  $("#message").text("Time's up! The correct answer was: " + questions[currentQuestion].answer);
+		  $("#next-btn").removeClass("hidden");
+		  time = 10;
+		}
+	  }, 1000);
+  
+	  // user clicks answer choice
+	  $(".choice").click(function () {
+		var selected = $(this).text();
+		if (selected == questions[currentQuestion].answer) {
+		  score++;
+		  $("#score").text(score);
+		  $("#message").text("Correct!");
+		} else {
+		  $("#message").text("Incorrect. The correct answer was: " + questions[currentQuestion].answer);
+		}
+		$("#next-btn").removeClass("hidden");
+		clearInterval(timer);
+	  });
+  
+	  // user clicks next question button
+	  $("#next-btn").click(function () {
+		if (currentQuestion == numQuestions - 1) {
+		  // end of game
+		  $("#question").text("Game over!");
+		  $("#choice-1").addClass("hidden");
+		  $("#choice-2").addClass("hidden");
+		  $("#choice-3").addClass("hidden");
+		  $("#choice-4").addClass("hidden");
+		  $("#message").text("Final score: " + score + " out of " + numQuestions);
+		  $("#next-btn").addClass("hidden");
+		} else {
+		  // next question
+		  currentQuestion++;
+		  displayQuestion();
+		  $("#message").text("");
+		  $("#next-btn").addClass("hidden");
+		  time = 10;
+		  timer = setInterval(function () {
+			time--;
+			$("#time").text(time);
+  
+			if (time == 0) {
+			  clearInterval(timer);
+			  $("#message").text("Time's up! The correct answer was: " + questions[currentQuestion].answer);
+			  $("#next-btn").removeClass("hidden");
+			  time = 10;
+			}
+		  }, 1000);
+		}
+	  });
+	});
   });
-});
+
+
+  
+  
